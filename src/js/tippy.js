@@ -1,4 +1,5 @@
 import Popper from 'popper.js'
+import ReactDOM from 'react-dom';
 
 /**!
 * @file tippy.js | Pure JS Tooltip Library
@@ -43,7 +44,9 @@ const DEFAULTS = {
     followCursor: false,
     inertia: false,
     transitionFlip: true,
-    popperOptions: {}
+    popperOptions: {},
+    open: undefined,
+    onRequestClose: () => {},
 }
 
 const DEFAULTS_KEYS = Object.keys(DEFAULTS)
@@ -489,6 +492,7 @@ function hideAllPoppers(currentRef) {
             && (!currentRef || ref.popper !== currentRef.popper)
            )
         {
+            ref.settings.onRequestClose();
             ref.tippyInstance.hide(ref.popper, ref.settings.hideDuration)
         }
 
@@ -596,6 +600,11 @@ export default class Tippy {
         }
 
         const handleTrigger = event => {
+            // Interactive tooltips receive a class of 'active'
+            if (settings.interactive) {
+                event.target.classList.add('active')
+            }
+
             // Toggle show/hide when clicking click-triggered tooltips
             if (
                 event.type === 'click'
@@ -718,6 +727,36 @@ export default class Tippy {
     }
 
     /**
+    * Update settings
+    * @param {DOMElement} - popper
+    * @param {string} - name
+    * @param {string} - value
+    */
+    updateSettings(popper, name, value) {
+      const ref = STORE.refs[STORE.poppers.indexOf(popper)]
+      const newSettings = {
+        ...ref.settings,
+        [name]: value,
+      }
+      ref.settings = newSettings;
+    };
+
+    /**
+    * Update a popper
+    * @param {DOMElement} - popper
+    * @param {ReactElement} - content
+    */
+    updateForReact(popper, updatedContent) {
+      const ref = STORE.refs[STORE.poppers.indexOf(popper)]
+      const tooltipContent = popper.querySelector(SELECTORS.content)
+
+      ReactDOM.render(
+        updatedContent,
+        tooltipContent,
+      );
+    }
+
+    /**
     * Shows a popper
     * @param {Element} popper
     * @param {Number} duration (optional)
@@ -727,6 +766,11 @@ export default class Tippy {
         const ref = STORE.refs[STORE.poppers.indexOf(popper)]
         const tooltip = popper.querySelector(SELECTORS.tooltip)
         const circle = popper.querySelector(SELECTORS.circle)
+
+        if (ref.settings.open === false) {
+          return;
+        }
+
 
         if (enableCallback) {
             this.callbacks.beforeShown()
@@ -813,11 +857,15 @@ export default class Tippy {
     * @param {Boolean} enableCallback (optional)
     */
     hide(popper, duration = this.settings.duration, enableCallback = true) {
+
         const ref = STORE.refs[STORE.poppers.indexOf(popper)]
         const tooltip = popper.querySelector(SELECTORS.tooltip)
         const circle = popper.querySelector(SELECTORS.circle)
         const content = popper.querySelector(SELECTORS.content)
-
+	      // Prevent hide if open
+        if (ref.settings.disabled === false && ref.settings.open) {
+          return;
+        }
         if (enableCallback) {
             this.callbacks.beforeHidden()
 
