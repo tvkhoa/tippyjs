@@ -24,6 +24,7 @@ export default function hideAllPoppers(exclude) {
     const isNotCurrentRef = !exclude || popper !== exclude.popper
 
     if (isHideOnClick && isNotCurrentRef) {
+      refData.settings.onRequestClose();
       tippyInstance.hide(popper)
     }
   })

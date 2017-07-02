@@ -61,7 +61,11 @@ export const Defaults = {
   touchHold: false,
   performance: false,
   dynamicTitle: false,
-  popperOptions: {}
+  useContext: false,
+  reactInstance: undefined,
+  popperOptions: {},
+  open: undefined,
+  onRequestClose: () => {},
 }
 
 /**
