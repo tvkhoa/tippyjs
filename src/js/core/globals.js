@@ -60,7 +60,11 @@ export const Defaults = {
     zIndex: 9999,
     touchHold: false,
     performance: false,
-    popperOptions: {}
+    useContext: false,
+    reactInstance: undefined,
+    popperOptions: {},
+    open: undefined,
+    onRequestClose: () => {},
 }
 
 /**

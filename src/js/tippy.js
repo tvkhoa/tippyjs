@@ -4,6 +4,7 @@ import {
     Selectors,
     Defaults
 } from './core/globals'
+import ReactDOM from 'react-dom'
 
 import init from './core/init'
 
@@ -97,6 +98,49 @@ class Tippy {
     }
 
     /**
+    * Update settings
+    * @param {DOMElement} - popper
+    * @param {string} - name
+    * @param {string} - value
+    */
+
+    updateSettings(popper, name, value) {
+      const ref = find(this.store, ref => ref.popper === popper)
+      const newSettings = {
+        ...ref.settings,
+        [name]: value,
+      }
+      ref.settings = newSettings;
+    };
+
+    /**
+    * Update for React
+    * @param {DOMElement} - popper
+    * @param {ReactElement} - content
+    */
+    updateForReact(popper, updatedContent) {
+      const tooltipContent = popper.querySelector(Selectors.CONTENT)
+      const ref = find(this.store, ref => ref.popper === popper)
+
+      const {
+        useContext,
+        reactInstance,
+      } = ref.settings;
+      if (useContext) {
+        ReactDOM.unstable_renderSubtreeIntoContainer(
+          ref.settings.reactInstance,
+          updatedContent,
+          tooltipContent,
+        );
+      } else {
+        ReactDOM.render(
+          updatedContent,
+          tooltipContent,
+        );
+      }
+
+    }
+    /**
     * Shows a popper
     * @param {Element} popper
     * @param {Number} customDuration (optional)
@@ -110,6 +154,14 @@ class Tippy {
         const tooltip = popper.querySelector(Selectors.TOOLTIP)
         const circle = popper.querySelector(Selectors.CIRCLE)
         const content = popper.querySelector(Selectors.CONTENT)
+
+        if (ref.settings.open === false) {
+          return;
+        }
+
+        if (ref.settings.reactDOM) {
+          this.updateForReact(popper, ref.settings.reactDOM)
+        }
 
         const {
             el,
@@ -201,6 +253,15 @@ class Tippy {
         const tooltip = popper.querySelector(Selectors.TOOLTIP)
         const circle = popper.querySelector(Selectors.CIRCLE)
         const content = popper.querySelector(Selectors.CONTENT)
+
+        // Prevent hide if open
+        if (ref.settings.disabled === false && ref.settings.open) {
+          return;
+        }
+
+        if (ref.settings.unmountHTMLWhenHide && ref.settings.reactDOM) {
+          ReactDOM.unmountComponentAtNode(content)
+        }
 
         const {
             el,
